@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Ouvidoria{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="fas fa-chart-line"></i> Dashboard da Ouvidoria
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body">
+                <h3 class="mb-0">{{ total_tickets }}</h3>
+                <p>Total de Chamados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow">
+            <div class="card-body">
+                <h3 class="mb-0">{{ pending_tickets }}</h3>
+                <p>Aguardando Análise</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow">
+            <div class="card-body">
+                <h3 class="mb-0">{{ in_progress_tickets }}</h3>
+                <p>Em Andamento</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow">
+            <div class="card-body">
+                <h3 class="mb-0">{{ completed_tickets }}</h3>
+                <p>Concluídos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-tag"></i> Chamados por Categoria
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if tickets_by_category %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in tickets_by_category %}
+                            <tr>
+                                <td><i class="fas {{ cat.icon }}"></i> {{ cat.name }}</td>
+                                <td>{{ cat.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Nenhum dado disponível</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-city"></i> Top 5 Bairros com Mais Chamados
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if tickets_by_neighborhood %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Bairro</th>
+                                <th>Chamados</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in tickets_by_neighborhood %}
+                            <tr>
+                                <td>{{ item.neighborhood }}</td>
+                                <td>{{ item.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Nenhum dado disponível</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Chamados com Maior Prioridade
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if high_priority_tickets %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Título</th>
+                                <th>Categoria</th>
+                                <th>Bairro</th>
+                                <th>Score</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in high_priority_tickets %}
+                            <tr>
+                                <td>#{{ ticket.id }}</td>
+                                <td>{{ ticket.title|truncatechars:50 }}</td>
+                                <td>{{ ticket.category.name|default:"-" }}</td>
+                                <td>{{ ticket.neighborhood }}</td>
+                                <td>
+                                    <span class="badge bg-danger">{{ ticket.priority_score|floatformat:0 }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'tickets:ticket_manage' ticket.id %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Gerenciar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Nenhum chamado de alta prioridade no momento</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

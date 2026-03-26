@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Sistema de Gestão de Chamados{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4">Sistema de Gestão de Chamados Públicos</h1>
+        <p class="lead">Ajude a melhorar sua cidade reportando problemas e acompanhando as soluções</p>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-sign-in-alt"></i> Acessar Sistema
+        </a>
+        {% else %}
+        <a href="{% url 'tickets:ticket_list' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-list"></i> Ver Chamados
+        </a>
+        <a href="{% url 'tickets:ticket_create' %}" class="btn btn-success btn-lg">
+            <i class="fas fa-plus"></i> Abrir Chamado
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h3>Reporte Problemas</h3>
+                <p>Registre problemas de iluminação, buracos, saneamento e outros serviços públicos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                <h3>Acompanhamento</h3>
+                <p>Acompanhe o status dos seus chamados e veja quando serão resolvidos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-tachometer-alt fa-3x text-success mb-3"></i>
+                <h3>Prioridade Automática</h3>
+                <p>Sistema calcula automaticamente a prioridade baseado em impacto e urgência</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-chart-bar"></i> Estatísticas Rápidas</h4>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h3>{{ total_tickets }}</h3>
+                        <p>Total de Chamados</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-warning">{{ pending_tickets }}</h3>
+                        <p>Aguardando Análise</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-info">{{ in_progress_tickets }}</h3>
+                        <p>Em Andamento</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-success">{{ completed_tickets }}</h3>
+                        <p>Concluídos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

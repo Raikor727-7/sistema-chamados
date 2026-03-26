@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Chamado #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header {% if is_manager %}bg-warning{% else %}bg-info{% endif %} text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-tools"></i> Gerenciar Chamado #{{ ticket.id }}
+                    {% if is_manager %}
+                    <span class="badge bg-dark float-end">Modo Gestor</span>
+                    {% else %}
+                    <span class="badge bg-dark float-end">Modo Analista</span>
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Chamado por:</strong> {{ ticket.created_by.get_full_name }}<br>
+                    <strong>Data:</strong> {{ ticket.created_at|date:"d/m/Y H:i" }}<br>
+                    <strong>Score atual:</strong> {{ ticket.priority_score|floatformat:1 }}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                        <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Informações Importantes
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Cálculo de Prioridade:</h6>
+                <ul class="small">
+                    <li>Score = Categoria + Pessoas Afetadas + Tempo de Espera</li>
+                    <li>Alta prioridade: >70 pontos</li>
+                    <li>Média prioridade: 40-70 pontos</li>
+                    <li>Baixa prioridade: <40 pontos</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Status:</h6>
+                <ul class="small">
+                    <li><span class="badge bg-warning">Pending</span> - Aguardando análise</li>
+                    <li><span class="badge bg-info">Approved</span> - Aprovado, aguardando início</li>
+                    <li><span class="badge bg-danger">Rejected</span> - Rejeitado</li>
+                    <li><span class="badge bg-primary">In Progress</span> - Em andamento</li>
+                    <li><span class="badge bg-success">Completed</span> - Concluído</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Criar Usuário{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-plus"></i> Criar Analista/Gestor
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="mb-3">
+                        <label for="user_type" class="form-label fw-bold">
+                            Tipo de Usuário <span class="text-danger">*</span>
+                        </label>
+                        <select name="user_type" id="user_type" class="form-select" required>
+                            <option value="analyst">Analista de Ouvidoria</option>
+                            <option value="manager">Gestor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="department" class="form-label fw-bold">
+                            Departamento
+                        </label>
+                        <input type="text" name="department" id="department" class="form-control" value="Ouvidoria">
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save"></i> Criar Usuário
+                        </button>
+                        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

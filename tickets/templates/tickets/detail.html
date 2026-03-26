@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes do Chamado #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-ticket-alt"></i> Chamado #{{ ticket.id }}
+                    <span class="float-end">
+                        {% if ticket.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Aguardando Análise</span>
+                        {% elif ticket.status == 'approved' %}
+                        <span class="badge bg-info">Aprovado</span>
+                        {% elif ticket.status == 'rejected' %}
+                        <span class="badge bg-danger">Rejeitado</span>
+                        {% elif ticket.status == 'in_progress' %}
+                        <span class="badge bg-primary">Em Andamento</span>
+                        {% elif ticket.status == 'completed' %}
+                        <span class="badge bg-success">Concluído</span>
+                        {% endif %}
+                    </span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <h3>{{ ticket.title }}</h3>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-tag"></i> Categoria:</strong> 
+                            {% if ticket.category %}
+                            <i class="fas {{ ticket.category.icon }}"></i> {{ ticket.category.name }}
+                            {% else %}
+                            Sem categoria
+                            {% endif %}
+                        </p>
+                        <p><strong><i class="fas fa-map-marker-alt"></i> Endereço:</strong> {{ ticket.address }}</p>
+                        <p><strong><i class="fas fa-city"></i> Bairro:</strong> {{ ticket.neighborhood }}</p>
+                        <p><strong><i class="fas fa-users"></i> Pessoas afetadas:</strong> {{ ticket.affected_people_estimate }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-chart-line"></i> Score de Prioridade:</strong>
+                            {% with score=ticket.priority_score %}
+                            {% if score >= 70 %}
+                            <span class="badge bg-danger">Alta ({{ score|floatformat:0 }})</span>
+                            {% elif score >= 40 %}
+                            <span class="badge bg-warning text-dark">Média ({{ score|floatformat:0 }})</span>
+                            {% else %}
+                            <span class="badge bg-success">Baixa ({{ score|floatformat:0 }})</span>
+                            {% endif %}
+                            {% endwith %}
+                        </p>
+                        <p><strong><i class="fas fa-user"></i> Criado por:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
+                        <p><strong><i class="fas fa-calendar"></i> Data:</strong> {{ ticket.created_at|date:"d/m/Y H:i" }}</p>
+                        {% if ticket.analyst %}
+                        <p><strong><i class="fas fa-user-check"></i> Analista:</strong> {{ ticket.analyst.get_full_name|default:ticket.analyst.username }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5><i class="fas fa-align-left"></i> Descrição:</h5>
+                    <div class="p-3 bg-light rounded">
+                        {{ ticket.description|linebreaks }}
+                    </div>
+                </div>
+                
+                {% if ticket.photo %}
+                <div class="mt-3">
+                    <h5><i class="fas fa-image"></i> Foto:</h5>
+                    <img src="{{ ticket.photo.url }}" class="img-fluid rounded" style="max-height: 400px;" alt="Foto do chamado">
+                </div>
+                {% endif %}
+                
+                {% if ticket.rejection_reason %}
+                <div class="mt-3">
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-ban"></i> Motivo da Rejeição:</h5>
+                        {{ ticket.rejection_reason }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Comentários -->
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments"></i> Comentários ({{ ticket.comments.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.comment.id_for_label }}" class="form-label">Adicionar comentário</label>
+                        {{ form.comment }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Enviar
+                    </button>
+                </form>
+                <hr>
+                {% endif %}
+                
+                {% for comment in ticket.comments.all %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <strong>
+                            <i class="fas fa-user-circle"></i> {{ comment.user.get_full_name|default:comment.user.username }}
+                        </strong>
+                        <small class="text-muted">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                    </div>
+                    <div class="p-2 bg-light rounded mt-1">
+                        {{ comment.comment|linebreaks }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                    <p>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Status e Ações
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3">
+                    {% if ticket.status == 'pending' %}
+                    <div class="progress-bar bg-warning" style="width: 25%">25%</div>
+                    {% elif ticket.status == 'approved' %}
+                    <div class="progress-bar bg-info" style="width: 50%">50%</div>
+                    {% elif ticket.status == 'in_progress' %}
+                    <div class="progress-bar bg-primary" style="width: 75%">75%</div>
+                    {% elif ticket.status == 'completed' %}
+                    <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                    {% endif %}
+                </div>
+                
+                <p><strong>Status Atual:</strong> {{ ticket.get_status_display }}</p>
+                
+                {% if ticket.status == 'pending' %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock"></i> Aguardando análise da ouvidoria
+                </div>
+                {% elif ticket.status == 'approved' %}
+                <div class="alert alert-info">
+                    <i class="fas fa-check-circle"></i> Chamado aprovado e aguardando início
+                </div>
+                {% elif ticket.status == 'in_progress' %}
+                <div class="alert alert-primary">
+                    <i class="fas fa-tools"></i> Equipe já está trabalhando na solução
+                </div>
+                {% elif ticket.status == 'completed' %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-double"></i> Problema resolvido!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-share-alt"></i> Compartilhar
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <p>Acompanhe este chamado:</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <button class="btn btn-outline-success" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i> Copiar Link
+                    </button>
+                </div>
+            </div>
+            <!-- No card de ações, adicione: -->
+            {% if user.can_manage_tickets %}
+            <div class="d-grid gap-2 mt-3">
+                <a href="{% url 'tickets:ticket_manage' ticket.id %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Gerenciar Chamado
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        alert('Link copiado para a área de transferência!');
+    });
+}
+</script>
+{% endblock %}

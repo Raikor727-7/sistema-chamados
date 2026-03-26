@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Chamados{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="fas fa-list"></i> Chamados Registrados
+            <a href="{% url 'tickets:ticket_create' %}" class="btn btn-success float-end">
+                <i class="fas fa-plus"></i> Novo Chamado
+            </a>
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar por título, descrição ou endereço..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">Todos os status</option>
+                            {% for status_code, status_name in status_choices %}
+                            <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
+                                {{ status_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select">
+                            <option value="">Todas as categorias</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Categoria</th>
+                        <th>Bairro</th>
+                        <th>Status</th>
+                        <th>Prioridade</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td>
+                            <strong>{{ ticket.title }}</strong><br>
+                            <small class="text-muted">{{ ticket.address|truncatechars:30 }}</small>
+                        </td>
+                        <td>
+                            {% if ticket.category %}
+                            <i class="fas {{ ticket.category.icon }}"></i> {{ ticket.category.name }}
+                            {% else %}
+                            Sem categoria
+                            {% endif %}
+                        </td>
+                        <td>{{ ticket.neighborhood }}</td>
+                        <td>
+                            {% if ticket.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Aguardando Análise</span>
+                            {% elif ticket.status == 'approved' %}
+                            <span class="badge bg-info">Aprovado</span>
+                            {% elif ticket.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejeitado</span>
+                            {% elif ticket.status == 'in_progress' %}
+                            <span class="badge bg-primary">Em Andamento</span>
+                            {% elif ticket.status == 'completed' %}
+                            <span class="badge bg-success">Concluído</span>
+                            {% elif ticket.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with score=ticket.priority_score %}
+                            {% if score >= 70 %}
+                            <span class="badge bg-danger">Alta ({{ score|floatformat:0 }})</span>
+                            {% elif score >= 40 %}
+                            <span class="badge bg-warning text-dark">Média ({{ score|floatformat:0 }})</span>
+                            {% else %}
+                            <span class="badge bg-success">Baixa ({{ score|floatformat:0 }})</span>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginação -->
+        {% if tickets.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if tickets.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tickets.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                        Anterior
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in tickets.paginator.page_range %}
+                {% if tickets.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > tickets.number|add:'-3' and num < tickets.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if tickets.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tickets.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                        Próxima
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle fa-2x mb-2"></i>
+            <h5>Nenhum chamado encontrado</h5>
+            <p>Seja o primeiro a abrir um chamado!</p>
+            <a href="{% url 'tickets:ticket_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Abrir Chamado
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

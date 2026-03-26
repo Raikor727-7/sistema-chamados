@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Chamados{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="fas fa-ticket-alt"></i> Meus Chamados
+            <a href="{% url 'tickets:ticket_create' %}" class="btn btn-success float-end">
+                <i class="fas fa-plus"></i> Novo Chamado
+            </a>
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body text-center">
+                <h3>{{ total }}</h3>
+                <p>Total de Chamados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow">
+            <div class="card-body text-center">
+                <h3>{{ pending }}</h3>
+                <p>Aguardando Análise</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow">
+            <div class="card-body text-center">
+                <h3>{{ in_progress }}</h3>
+                <p>Em Andamento</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow">
+            <div class="card-body text-center">
+                <h3>{{ completed }}</h3>
+                <p>Concluídos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th>Prioridade</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td>
+                            <strong>{{ ticket.title }}</strong><br>
+                            <small class="text-muted">{{ ticket.address|truncatechars:30 }}</small>
+                        </td>
+                        <td>
+                            {% if ticket.category %}
+                            <i class="fas {{ ticket.category.icon }}"></i> {{ ticket.category.name }}
+                            {% else %}
+                            Sem categoria
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ticket.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Aguardando Análise</span>
+                            {% elif ticket.status == 'approved' %}
+                            <span class="badge bg-info">Aprovado</span>
+                            {% elif ticket.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejeitado</span>
+                            {% elif ticket.status == 'in_progress' %}
+                            <span class="badge bg-primary">Em Andamento</span>
+                            {% elif ticket.status == 'completed' %}
+                            <span class="badge bg-success">Concluído</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with score=ticket.priority_score %}
+                            {% if score >= 70 %}
+                            <span class="badge bg-danger">Alta ({{ score|floatformat:0 }})</span>
+                            {% elif score >= 40 %}
+                            <span class="badge bg-warning text-dark">Média ({{ score|floatformat:0 }})</span>
+                            {% else %}
+                            <span class="badge bg-success">Baixa ({{ score|floatformat:0 }})</span>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle fa-2x mb-2"></i>
+            <h5>Você ainda não abriu nenhum chamado</h5>
+            <p>Seja o primeiro a reportar um problema na sua cidade!</p>
+            <a href="{% url 'tickets:ticket_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Abrir Primeiro Chamado
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
